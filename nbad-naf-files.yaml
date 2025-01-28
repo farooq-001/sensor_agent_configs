@@ -1,0 +1,55 @@
+################## Filebeat Configuration - NAF Files ###################
+#======================== Filebeat prospectors ==========================
+filebeat.prospectors:
+# NAF Files
+- input_type: log
+  paths:
+    - "/opt/zeek/logs/current/files.log"
+
+# NAF x509
+- input_type: log
+  paths:
+    - "/opt/zeek/logs/current/x509.log"
+
+fields:
+  log.type: "nbad"
+  sensor_id: "$SENSOR_CODE"
+  client_id: "$ORG_CODE"
+fields_under_root: true
+
+
+#======================= Filebeat Global Options =========================
+filebeat.registry_file: /opt/sensor/conf/etc/registry/blu_naffh
+
+#=========================== Filebeat modules ============================
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: true
+  reload.period: 60s
+
+#========================= Logstash output ===============================
+output.logstash:
+  # The Logstash hosts
+  bulk_max_size: 8192
+  hosts: ["$GC_IP:12105"]
+  timeout: 120
+  loadbalance: true
+  worker: 7
+
+#================================ Logging =====================================
+logging.level: info
+logging.to_files: true
+logging.metrics.enabled: true
+logging.metrics.period: 60s
+logging.files:
+  path: /var/log/filebeat/
+  name: naffiles
+  keepfiles: 7
+
+close_inactive: 10s
+scan_frequency: 60s
+
+queue.mem:
+  events: 4096
+  flush.min_events: 512
+  flush.timeout: 1s
